@@ -1,0 +1,929 @@
+<title>Controle Abatedouro</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #F2EFE8;
+  --surface: #FFFFFF;
+  --surface-hover: #F5F3EE;
+  --primary: #2D5F2D;
+  --primary-soft: #E3EDE3;
+  --accent: #C17F24;
+  --accent-soft: #FBF3E5;
+  --text: #1C2C1C;
+  --text-muted: #607060;
+  --border: #D0CCBE;
+  --danger: #B83230;
+  --danger-soft: #FCE8E7;
+  --male: #3A7CA5;
+  --female: #B85C8A;
+  --nav-h: 60px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141A14; --surface: #1E251E; --surface-hover: #263026;
+    --primary: #5CB85C; --primary-soft: #1E2E1E;
+    --accent: #E0A040; --accent-soft: #2E2510;
+    --text: #DEE5DE; --text-muted: #8CA08C; --border: #2E352E;
+    --danger: #E05550; --danger-soft: #301818;
+    --male: #5BA3CF; --female: #D47BAA;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141A14; --surface: #1E251E; --surface-hover: #263026;
+  --primary: #5CB85C; --primary-soft: #1E2E1E;
+  --accent: #E0A040; --accent-soft: #2E2510;
+  --text: #DEE5DE; --text-muted: #8CA08C; --border: #2E352E;
+  --danger: #E05550; --danger-soft: #301818;
+  --male: #5BA3CF; --female: #D47BAA;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', system-ui, sans-serif; margin: 0; padding-inline: 0; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+*,*::before,*::after { box-sizing: border-box; }
+h1,h2,h3 { font-family: 'Outfit', system-ui, sans-serif; margin: 0; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input,textarea,select { font-family: inherit; }
+
+#header {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: var(--primary); color: #fff;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 10px;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.header-top h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.01em; }
+#btn-cloud { color: rgba(255,255,255,0.85); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.15s; position: relative; }
+#btn-cloud:hover { background: rgba(255,255,255,0.15); }
+#btn-cloud svg { width: 20px; height: 20px; }
+.cloud-dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--primary); }
+.cloud-dot.off { background: rgba(255,255,255,0.4); }
+.cloud-dot.on { background: #4ade80; }
+.cloud-dot.err { background: #f87171; }
+.cloud-modal { background: var(--surface); border-radius: 16px 16px 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateY(20px); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+.modal-overlay.open .cloud-modal { transform: translateY(0); }
+.cloud-modal h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; }
+.cloud-modal .cloud-subtitle { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px; }
+.cloud-status { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; font-weight: 500; }
+.cloud-status.off { background: var(--bg); color: var(--text-muted); }
+.cloud-status.on { background: #ECFDF5; color: #065F46; }
+.cloud-status.err { background: var(--danger-soft); color: var(--danger); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cloud-status.on { background: #0D3320; color: #6EE7A0; } }
+:root[data-theme="dark"] .cloud-status.on { background: #0D3320; color: #6EE7A0; }
+.cloud-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cloud-help { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px; }
+.cloud-help ol { padding-left: 20px; margin: 8px 0; }
+.cloud-help li { margin-bottom: 6px; }
+.cloud-help a { color: var(--primary); text-decoration: underline; }
+.cloud-help code { background: var(--bg); padding: 1px 5px; border-radius: 4px; font-size: 0.75rem; }
+.cloud-config-area { width: 100%; min-height: 100px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; font-size: 0.78rem; background: var(--bg); color: var(--text); resize: vertical; }
+.cloud-actions { display: flex; gap: 10px; margin-top: 12px; }
+.cloud-actions button { flex: 1; padding: 11px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; }
+.btn-cloud-connect { background: var(--primary); color: #fff; }
+.btn-cloud-disconnect { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger); }
+.btn-cloud-close { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.month-nav { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.month-nav button { color: rgba(255,255,255,0.8); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.15s; }
+.month-nav button:hover { background: rgba(255,255,255,0.15); }
+.month-nav button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+#month-label { font-family: 'Outfit', system-ui, sans-serif; font-weight: 500; font-size: 0.95rem; min-width: 140px; text-align: center; text-transform: capitalize; }
+
+.view { padding: 16px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 80px); min-height: 60vh; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.stat-label { font-size: 0.72rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.stat-value { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat-value.primary { color: var(--primary); }
+.stat-value.accent { color: var(--accent); }
+.stat-value.male { color: var(--male); }
+.stat-value.female { color: var(--female); }
+
+.chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+.chart-box h3 { font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; }
+.chart-wrap { position: relative; height: 220px; }
+
+.section-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; }
+
+.record-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.15s; position: relative; }
+.record-card:hover { background: var(--surface-hover); }
+.record-day { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; color: var(--primary); min-width: 38px; text-align: center; line-height: 1; }
+.record-day small { display: block; font-size: 0.6rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.record-info { flex: 1; min-width: 0; }
+.record-total { font-weight: 600; font-size: 0.95rem; }
+.record-sex { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; display: flex; gap: 10px; }
+.record-sex .m { color: var(--male); }
+.record-sex .f { color: var(--female); }
+.record-obs { font-size: 0.75rem; color: var(--text-muted); font-style: italic; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.record-count { font-family: 'Outfit', system-ui, sans-serif; font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.record-count small { font-size: 0.65rem; font-weight: 500; color: var(--text-muted); }
+.btn-del { color: var(--text-muted); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0; transition: color 0.15s, background 0.15s; }
+.btn-del:hover { color: var(--danger); background: var(--danger-soft); }
+
+.confirm-del { position: absolute; inset: 0; background: var(--danger-soft); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 12px; z-index: 5; padding: 12px; }
+.confirm-del span { font-weight: 500; font-size: 0.9rem; color: var(--danger); }
+.confirm-del button { padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; }
+.confirm-del .yes { background: var(--danger); color: #fff; }
+.confirm-del .no { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 0.9rem; margin: 0; }
+
+.report-section { margin-bottom: 20px; }
+.filter-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.ft { padding: 7px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); transition: all 0.15s; }
+.ft.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.filter-inputs { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.filter-field { display: flex; flex-direction: column; gap: 4px; }
+.filter-field label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
+.filter-field input, .filter-field select {
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.9rem; background: var(--surface); color: var(--text);
+}
+.filter-field input:focus, .filter-field select:focus { outline: none; border-color: var(--primary); }
+
+.btn-pdf {
+  width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 0.95rem;
+  background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: 20px; transition: opacity 0.15s;
+}
+.btn-pdf:disabled { opacity: 0.5; cursor: default; }
+.btn-pdf svg { width: 20px; height: 20px; }
+
+.report-table-wrap { overflow-x: auto; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 10px; }
+.report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.report-table th { background: var(--primary-soft); color: var(--text); font-weight: 600; text-align: left; padding: 10px 12px; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+.report-table td { padding: 8px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
+.report-table tr:hover td { background: var(--surface-hover); }
+.report-table tfoot td { font-weight: 700; background: var(--primary-soft); border-top: 2px solid var(--primary); }
+.report-table .month-header td { background: var(--primary); color: #fff; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.82rem; padding: 8px 12px; border-top: none; }
+.report-table .month-subtotal td { background: var(--primary-soft); font-weight: 600; font-size: 0.82rem; border-top: 1px solid var(--primary); }
+.report-table .month-header:hover td, .report-table .month-subtotal:hover td { background: var(--primary-soft); }
+.report-table .num { text-align: right; }
+.report-table .m { color: var(--male); }
+.report-table .f { color: var(--female); }
+
+.data-tools { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 16px; }
+.data-tools h3 { font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; }
+.tool-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-btn { padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 500; background: var(--surface); border: 1px solid var(--border); color: var(--text); transition: background 0.15s; }
+.tool-btn:hover { background: var(--surface-hover); }
+.tool-btn.danger { color: var(--danger); border-color: var(--danger); }
+.data-area { margin-top: 12px; width: 100%; min-height: 120px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.75rem; background: var(--surface); color: var(--text); resize: vertical; }
+
+#fab {
+  position: fixed; right: 20px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 40; width: 56px; height: 56px; border-radius: 16px;
+  background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s;
+}
+#fab:active { transform: scale(0.92); }
+#fab svg { width: 28px; height: 28px; }
+
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  height: var(--nav-h); padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--surface); border-top: 1px solid var(--border); display: flex;
+}
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: color 0.15s; padding: 4px 0; }
+.nav-btn svg { width: 21px; height: 21px; }
+.nav-btn span { font-size: 0.6rem; font-weight: 500; }
+.nav-btn.active { color: var(--primary); }
+
+.modal-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-sheet { background: var(--surface); border-radius: 16px 16px 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateY(20px); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-sheet h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; }
+.field input, .field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: var(--bg); color: var(--text); }
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--primary); }
+.field textarea { resize: vertical; min-height: 60px; }
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+.form-warn { font-size: 0.78rem; color: var(--accent); margin: -8px 0 10px; }
+.form-actions { display: flex; gap: 10px; margin-top: 6px; }
+.form-actions button { flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; }
+.btn-cancel { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-save { background: var(--primary); color: #fff; }
+
+.toast { position: fixed; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 80px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 200; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (min-width: 640px) {
+  .view { padding-inline: 24px; max-width: 720px; margin-inline: auto; }
+  .stats-grid, .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  .chart-wrap { height: 280px; }
+  .modal-sheet { border-radius: 16px; margin-bottom: 40px; }
+  .modal-overlay { align-items: center; }
+}
+.summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration: 0.01ms !important; } }
+</style>
+
+<div id="app">
+  <header id="header">
+    <div class="header-top"><h1>Controle Abatedouro</h1><button id="btn-cloud" aria-label="Nuvem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg><span class="cloud-dot off" id="cloud-dot"></span></button></div>
+    <div class="month-nav">
+      <button id="prev-month" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <span id="month-label"></span>
+      <button id="next-month" aria-label="Proximo mes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    </div>
+  </header>
+
+  <section id="v-dash" class="view">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Bovinos</div><div class="stat-value primary" id="s-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">Abates</div><div class="stat-value accent" id="s-events">0</div></div>
+      <div class="stat-card"><div class="stat-label">Machos</div><div class="stat-value male" id="s-machos">0</div></div>
+      <div class="stat-card"><div class="stat-label">Femeas</div><div class="stat-value female" id="s-femeas">0</div></div>
+    </div>
+    <div class="chart-box"><h3>Volume diario</h3><div class="chart-wrap"><canvas id="chart-daily"></canvas></div></div>
+    <h3 class="section-title">Ultimos registros</h3>
+    <div id="recent-list"></div>
+  </section>
+
+  <section id="v-rec" class="view" hidden>
+    <div id="records-list"></div>
+  </section>
+
+  <section id="v-report" class="view" hidden>
+    <div class="report-section">
+      <h3 class="section-title">Periodo do Relatorio</h3>
+      <div class="filter-tabs" id="filter-tabs">
+        <button class="ft active" data-ft="month">Mes</button>
+        <button class="ft" data-ft="year">Ano</button>
+        <button class="ft" data-ft="range">Periodo</button>
+        <button class="ft" data-ft="day">Dia</button>
+      </div>
+      <div class="filter-inputs" id="filter-inputs"></div>
+    </div>
+    <div class="stats-grid" id="report-summary"></div>
+    <div id="report-preview"></div>
+    <button class="btn-pdf" id="btn-pdf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      Baixar PDF
+    </button>
+  </section>
+
+  <section id="v-stats" class="view" hidden>
+    <div class="chart-box"><h3>Total mensal</h3><div class="chart-wrap"><canvas id="chart-monthly"></canvas></div></div>
+    <h3 class="section-title">Resumo geral</h3>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div class="data-tools">
+      <h3>Gerenciar dados</h3>
+      <div class="tool-btns">
+        <button class="tool-btn" id="btn-export">Exportar</button>
+        <button class="tool-btn" id="btn-import">Importar</button>
+        <button class="tool-btn danger" id="btn-reset">Restaurar originais</button>
+      </div>
+      <div id="data-panel"></div>
+    </div>
+  </section>
+
+  <button id="fab" aria-label="Novo registro">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+
+  <nav id="nav">
+    <button class="nav-btn active" data-view="dash" aria-label="Painel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Painel</span>
+    </button>
+    <button class="nav-btn" data-view="rec" aria-label="Registros">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span>Registros</span>
+    </button>
+    <button class="nav-btn" data-view="report" aria-label="Relatorio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v4a1 1 0 001 1h4"/><path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"/><path d="M9 17h6M9 13h6"/></svg>
+      <span>Relatorio</span>
+    </button>
+    <button class="nav-btn" data-view="stats" aria-label="Analise">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      <span>Analise</span>
+    </button>
+  </nav>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-sheet">
+      <h2 id="modal-title">Novo Registro</h2>
+      <form id="form">
+        <div class="field"><label for="f-date">Data</label><input type="date" id="f-date" required></div>
+        <div class="field"><label for="f-total">Total de bovinos</label><input type="number" id="f-total" min="1" required inputmode="numeric"></div>
+        <div class="field-row">
+          <div class="field"><label for="f-machos">Machos</label><input type="number" id="f-machos" min="0" inputmode="numeric"></div>
+          <div class="field"><label for="f-femeas">Femeas</label><input type="number" id="f-femeas" min="0" inputmode="numeric"></div>
+        </div>
+        <div class="form-warn" id="form-warn" hidden></div>
+        <div class="field"><label for="f-obs">Observacoes</label><textarea id="f-obs" rows="2" placeholder="Opcional"></textarea></div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="btn-cancel">Cancelar</button>
+          <button type="submit" class="btn-save">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="modal-overlay" id="cloud-modal">
+    <div class="modal-backdrop" id="cloud-backdrop"></div>
+    <div class="cloud-modal">
+      <h2>Sincronizar na Nuvem</h2>
+      <p class="cloud-subtitle">Acesse seus dados de qualquer dispositivo</p>
+      <div class="cloud-status off" id="cloud-status"><span class="cloud-status-dot" style="background:currentColor"></span><span id="cloud-status-text">Desconectado</span></div>
+      <div id="cloud-body">
+        <div class="cloud-help">
+          <strong>Como configurar (gratuito):</strong>
+          <ol>
+            <li>Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
+            <li>Clique em <strong>Adicionar projeto</strong>, escolha um nome e crie</li>
+            <li>No painel do projeto, clique na engrenagem &gt; <strong>Configuracoes do projeto</strong></li>
+            <li>Em <strong>Seus aplicativos</strong>, clique no icone <strong>&lt;/&gt;</strong> (Web)</li>
+            <li>Registre o app (qualquer nome) e copie o bloco <code>firebaseConfig</code></li>
+            <li>No menu lateral, clique em <strong>Firestore Database</strong> &gt; <strong>Criar banco de dados</strong></li>
+            <li>Escolha <strong>Modo de teste</strong> e selecione a regiao</li>
+            <li>Cole a configuracao abaixo e clique <strong>Conectar</strong></li>
+          </ol>
+        </div>
+        <textarea class="cloud-config-area" id="cloud-config" placeholder='Cole aqui o firebaseConfig, ex:&#10;{&#10;  "apiKey": "AIza...",&#10;  "authDomain": "meu-app.firebaseapp.com",&#10;  "projectId": "meu-app",&#10;  "storageBucket": "meu-app.appspot.com",&#10;  "messagingSenderId": "123...",&#10;  "appId": "1:123..."&#10;}'></textarea>
+        <div class="cloud-actions">
+          <button class="btn-cloud-close" id="btn-cloud-close">Fechar</button>
+          <button class="btn-cloud-connect" id="btn-cloud-connect">Conectar</button>
+        </div>
+      </div>
+      <div id="cloud-connected" hidden>
+        <div class="cloud-actions">
+          <button class="btn-cloud-close" id="btn-cloud-close2">Fechar</button>
+          <button class="btn-cloud-disconnect" id="btn-cloud-disc">Desconectar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+<script>
+const MONTHS=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const MABBR=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const WDAYS=['dom','seg','ter','qua','qui','sex','sab'];
+
+const SEED=[
+["2025-12-02",16],["2025-12-04",18],["2025-12-08",8],["2025-12-09",13],["2025-12-11",18],["2025-12-15",14],["2025-12-16",16],["2025-12-18",15],["2025-12-21",7],["2025-12-22",18],["2025-12-24",15],["2025-12-29",20],["2025-12-31",16],
+["2026-01-06",12],["2026-01-08",16],["2026-01-13",16],["2026-01-15",19],["2026-01-19",15],["2026-01-21",19],
+["2026-02-03",15],["2026-02-05",21],["2026-02-09",7],["2026-02-10",15],["2026-02-12",21],["2026-02-16",5],["2026-02-17",16],["2026-02-19",17],["2026-02-23",6],["2026-02-24",20],["2026-02-26",12],
+["2026-03-02",6],["2026-03-03",16],["2026-03-05",14],["2026-03-10",20,2,18],["2026-03-12",16,6,10],["2026-03-16",11,7,4],["2026-03-17",13,7,6],["2026-03-19",16,7,9],["2026-03-23",8,1,7],["2026-03-24",10,2,8],["2026-03-26",14,6,8],["2026-03-30",9,2,7],
+["2026-04-01",16,9,7],["2026-04-06",9,4,5],["2026-04-07",9,4,5],["2026-04-09",17],["2026-04-13",18,8,10],["2026-04-14",8,4,4],["2026-04-16",15,8,7],["2026-04-21",14,3,11],["2026-04-23",16,7,9],["2026-04-24",5,4,1],["2026-04-28",24,17,7],["2026-04-30",20,6,14],
+["2026-05-05",22,13,9],["2026-05-07",19,7,12],["2026-05-08",11],["2026-05-12",19,5,14],["2026-05-14",25,18,7],["2026-05-15",13],["2026-05-19",8,4,4],["2026-05-21",17,13,4],["2026-05-22",10],["2026-05-26",12,7,5],["2026-05-28",20,5,15],["2026-05-29",8,5,3],
+["2026-06-02",22,3,19],["2026-06-04",12,4,8],["2026-06-04",7],["2026-06-09",22,13,9],["2026-06-11",15],["2026-06-11",7],["2026-06-16",26,6,20],["2026-06-18",13,2,11],["2026-06-18",7,1,6],["2026-06-23",20,11,9],["2026-06-25",16],["2026-06-25",5,1,4],["2026-06-30",23],
+["2026-07-02",18],["2026-07-02",4],["2026-07-07",23],["2026-07-09",20],["2026-07-09",9],["2026-07-14",18],["2026-07-16",17],["2026-07-17",6],["2026-07-20",15],["2026-07-23",19],["2026-07-24",6],["2026-07-28",25],["2026-07-30",19],["2026-07-31",7],
+["2026-08-04",27],["2026-08-06",20],["2026-08-07",11,0,11],["2026-08-11",22],["2026-08-13",13],["2026-08-14",6],["2026-08-18",27],["2026-08-20",17],["2026-08-21",7],["2026-08-25",20],["2026-08-27",16],["2026-08-28",9],
+["2026-09-01",24],["2026-09-03",15],["2026-09-04",11],["2026-09-08",29],["2026-09-10",13],["2026-09-11",8],["2026-09-15",27],["2026-09-17",18],["2026-09-18",6],["2026-09-22",18],["2026-09-24",15],["2026-09-25",5],["2026-09-28",21]
+];
+
+let records=[], curYear, curMonth, curView='dash', editId=null;
+let dailyChart, monthlyChart;
+let reportFilter='month';
+let dlApi=null;
+let fbDB=null,fbSyncing=false;
+
+function uid(){try{return crypto.randomUUID()}catch{return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}}
+function load(){try{const d=localStorage.getItem('abatedouro_v2');if(d){records=JSON.parse(d);return}}catch{}seedData()}
+function seedData(){records=SEED.map(s=>({id:uid(),date:s[0],total:s[1],machos:s[2]??null,femeas:s[3]??null,obs:''}));save()}
+function save(){
+  try{localStorage.setItem('abatedouro_v2',JSON.stringify(records))}catch{}
+  if(fbDB&&!fbSyncing){fbDB.collection('app').doc('data').set({records:records,updated:Date.now()}).catch(function(e){console.error('Firestore:',e)})}
+}
+
+function byMonth(y,m){return records.filter(r=>{const d=new Date(r.date+'T00:00:00');return d.getFullYear()===y&&d.getMonth()===m}).sort((a,b)=>a.date.localeCompare(b.date))}
+function byRange(from,to){return records.filter(r=>r.date>=from&&r.date<=to).sort((a,b)=>a.date.localeCompare(b.date))}
+function byYear(y){return records.filter(r=>r.date.startsWith(y+'-')).sort((a,b)=>a.date.localeCompare(b.date))}
+function byDay(d){return records.filter(r=>r.date===d).sort((a,b)=>a.date.localeCompare(b.date))}
+
+function allMonths(){
+  const map={};
+  records.forEach(r=>{const d=new Date(r.date+'T00:00:00');const k=d.getFullYear()*12+d.getMonth();if(!map[k])map[k]={y:d.getFullYear(),m:d.getMonth(),total:0,machos:0,femeas:0,count:0};map[k].total+=r.total;if(r.machos!=null)map[k].machos+=r.machos;if(r.femeas!=null)map[k].femeas+=r.femeas;map[k].count++});
+  return Object.values(map).sort((a,b)=>(a.y*12+a.m)-(b.y*12+b.m));
+}
+
+function fmtDate(iso){const d=new Date(iso+'T00:00:00');return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
+function fmtDateShort(iso){const d=new Date(iso+'T00:00:00');return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function colors(){const s=getComputedStyle(document.documentElement);const g=v=>s.getPropertyValue(v).trim();return{primary:g('--primary'),accent:g('--accent'),text:g('--text'),muted:g('--text-muted'),border:g('--border'),male:g('--male'),female:g('--female'),bg:g('--bg'),surface:g('--surface')}}
+
+function sumRecs(recs){
+  return {total:recs.reduce((s,r)=>s+r.total,0),machos:recs.reduce((s,r)=>s+(r.machos||0),0),femeas:recs.reduce((s,r)=>s+(r.femeas||0),0),count:recs.length};
+}
+
+function downloadBlob(blob,filename){
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url)},200);
+}
+(function initDl(){try{if(window.claude&&typeof window.claude.use==='function'){window.claude.use("downloads").then(function(d){if(d)dlApi=d})}}catch(e){}}());
+
+function getFBConfig(){try{var c=localStorage.getItem('abatedouro_fb');return c?JSON.parse(c):null}catch(e){return null}}
+function saveFBConfig(cfg){try{localStorage.setItem('abatedouro_fb',JSON.stringify(cfg))}catch(e){}}
+function clearFBConfig(){try{localStorage.removeItem('abatedouro_fb')}catch(e){}}
+
+function updateCloudUI(state,msg){
+  var dot=document.getElementById('cloud-dot');
+  var status=document.getElementById('cloud-status');
+  var statusText=document.getElementById('cloud-status-text');
+  var body=document.getElementById('cloud-body');
+  var conn=document.getElementById('cloud-connected');
+  dot.className='cloud-dot '+state;
+  status.className='cloud-status '+state;
+  statusText.textContent=msg||{off:'Desconectado',on:'Conectado e sincronizando',err:'Erro na conexao'}[state]||'';
+  if(state==='on'){body.hidden=true;conn.hidden=false}
+  else{body.hidden=false;conn.hidden=true}
+}
+
+function connectFirebase(cfg){
+  if(!window.firebase){toast('Firebase nao carregou. Verifique sua conexao.');return false}
+  try{
+    if(firebase.apps.length){firebase.apps.forEach(function(a){a.delete()})}
+  }catch(e){}
+  try{
+    firebase.initializeApp(cfg);
+    fbDB=firebase.firestore();
+
+    fbDB.collection('app').doc('data').onSnapshot(function(doc){
+      if(doc.exists&&doc.data().records){
+        fbSyncing=true;
+        records=doc.data().records;
+        try{localStorage.setItem('abatedouro_v2',JSON.stringify(records))}catch(e){}
+        render();
+        fbSyncing=false;
+      }
+    },function(err){
+      console.error('Firestore listen error:',err);
+      updateCloudUI('err','Erro: '+err.message);
+    });
+
+    fbDB.collection('app').doc('data').get().then(function(doc){
+      if(!doc.exists&&records.length){
+        fbDB.collection('app').doc('data').set({records:records,updated:Date.now()});
+      }
+      updateCloudUI('on');
+      toast('Conectado a nuvem!');
+    }).catch(function(err){
+      updateCloudUI('err','Erro: '+err.message);
+      toast('Erro ao conectar: '+err.message);
+    });
+
+    saveFBConfig(cfg);
+    return true;
+  }catch(err){
+    console.error('Firebase init:',err);
+    updateCloudUI('err','Erro: '+err.message);
+    toast('Erro: '+err.message);
+    return false;
+  }
+}
+
+function disconnectFirebase(){
+  fbDB=null;fbSyncing=false;
+  try{if(firebase.apps.length){firebase.apps.forEach(function(a){a.delete()})}}catch(e){}
+  clearFBConfig();
+  updateCloudUI('off');
+  toast('Desconectado da nuvem');
+}
+
+function openCloudModal(){document.getElementById('cloud-modal').classList.add('open')}
+function closeCloudModal(){document.getElementById('cloud-modal').classList.remove('open')}
+
+function handleCloudConnect(){
+  var raw=document.getElementById('cloud-config').value.trim();
+  if(!raw){toast('Cole a configuracao do Firebase');return}
+  try{
+    var clean=raw.replace(/^.*?firebaseConfig\s*=\s*/,'').replace(/;?\s*$/,'');
+    clean=clean.replace(/(\w+)\s*:/g,'"$1":').replace(/'/g,'"').replace(/,\s*}/g,'}').replace(/,\s*$/,'');
+    var cfg=JSON.parse(clean);
+    if(!cfg.apiKey||!cfg.projectId){toast('Configuracao incompleta: falta apiKey ou projectId');return}
+    connectFirebase(cfg);
+  }catch(err){
+    toast('Configuracao invalida. Cole o JSON do firebaseConfig.');
+    console.error('Parse error:',err);
+  }
+}
+
+var DEFAULT_FB_CONFIG={apiKey:"AIzaSyAM84uZoy4aL3X2A-figq4T8U0z0nZMfxo",authDomain:"controle-do-abatedouro.firebaseapp.com",projectId:"controle-do-abatedouro",storageBucket:"controle-do-abatedouro.firebasestorage.app",messagingSenderId:"972092947242",appId:"1:972092947242:web:efff359010c3ce4e34fc53"};
+
+function initCloud(){
+  var cfg=getFBConfig();
+  if(!cfg||!cfg.apiKey){cfg=DEFAULT_FB_CONFIG}
+  connectFirebase(cfg);
+}
+
+function setMonth(y,m){curYear=y;curMonth=m;document.getElementById('month-label').textContent=MONTHS[m]+' '+y;render()}
+function prevMonth(){let y=curYear,m=curMonth-1;if(m<0){m=11;y--}setMonth(y,m)}
+function nextMonth(){let y=curYear,m=curMonth+1;if(m>11){m=0;y++}setMonth(y,m)}
+
+function switchView(v){
+  curView=v;
+  document.querySelectorAll('.view').forEach(el=>el.hidden=true);
+  document.getElementById('v-'+v).hidden=false;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  render();
+}
+
+function render(){
+  if(curView==='dash')renderDash();
+  else if(curView==='rec')renderRec();
+  else if(curView==='report')renderReport();
+  else if(curView==='stats')renderStats();
+}
+
+function renderDash(){
+  const recs=byMonth(curYear,curMonth);
+  const s=sumRecs(recs);
+  document.getElementById('s-total').textContent=s.total;
+  document.getElementById('s-events').textContent=s.count;
+  document.getElementById('s-machos').textContent=s.machos;
+  document.getElementById('s-femeas').textContent=s.femeas;
+  const c=colors();
+  if(dailyChart){
+    dailyChart.data.labels=recs.map(r=>{const d=new Date(r.date+'T00:00:00');return String(d.getDate()).padStart(2,'0')});
+    dailyChart.data.datasets[0].data=recs.map(r=>r.total);
+    dailyChart.data.datasets[0].backgroundColor=c.primary;
+    dailyChart.options.scales.x.ticks.color=c.muted;dailyChart.options.scales.y.ticks.color=c.muted;dailyChart.options.scales.y.grid.color=c.border;
+    dailyChart.update('none');
+  }
+  const recent=recs.slice(-5).reverse();
+  const el=document.getElementById('recent-list');
+  if(!recent.length){el.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Nenhum registro neste mes</p></div>';return}
+  el.innerHTML=recent.map(r=>cardHTML(r)).join('');bindCards(el);
+}
+
+function renderRec(){
+  const recs=byMonth(curYear,curMonth);
+  const el=document.getElementById('records-list');
+  if(!recs.length){el.innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Nenhum registro em '+MONTHS[curMonth]+' '+curYear+'</p></div>';return}
+  el.innerHTML=recs.map(r=>cardHTML(r)).join('');bindCards(el);
+}
+
+function cardHTML(r){
+  const d=new Date(r.date+'T00:00:00');const day=String(d.getDate()).padStart(2,'0');const wday=WDAYS[d.getDay()];
+  let sex='';
+  if(r.machos!=null||r.femeas!=null){const p=[];if(r.machos!=null)p.push('<span class="m">&#9794; '+r.machos+'</span>');if(r.femeas!=null)p.push('<span class="f">&#9792; '+r.femeas+'</span>');sex='<div class="record-sex">'+p.join('')+'</div>'}
+  const obs=r.obs?'<div class="record-obs">'+esc(r.obs)+'</div>':'';
+  return '<div class="record-card" data-id="'+r.id+'" tabindex="0"><div class="record-day">'+day+'<small>'+wday+'</small></div><div class="record-info"><div class="record-total">'+r.total+' bovinos</div>'+sex+obs+'</div><div class="record-count">'+r.total+' <small>cab</small></div><button class="btn-del" aria-label="Excluir" data-del="'+r.id+'"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></div>';
+}
+
+function bindCards(container){
+  container.querySelectorAll('.btn-del').forEach(btn=>{btn.addEventListener('click',e=>{e.stopPropagation();const card=btn.closest('.record-card');const id=btn.dataset.del;const conf=document.createElement('div');conf.className='confirm-del';conf.innerHTML='<span>Excluir?</span><button class="yes">Sim</button><button class="no">Nao</button>';card.appendChild(conf);conf.querySelector('.yes').addEventListener('click',ev=>{ev.stopPropagation();records=records.filter(r=>r.id!==id);save();render();toast('Registro excluido')});conf.querySelector('.no').addEventListener('click',ev=>{ev.stopPropagation();conf.remove()})})});
+  container.querySelectorAll('.record-card').forEach(card=>{card.addEventListener('click',()=>{const r=records.find(x=>x.id===card.dataset.id);if(r)openModal(r)})});
+}
+
+// ===== REPORT =====
+function getReportRecords(){
+  if(reportFilter==='month'){
+    const m=parseInt(document.getElementById('rf-month').value);
+    const y=parseInt(document.getElementById('rf-year').value);
+    return {recs:byMonth(y,m), label:MONTHS[m]+' '+y};
+  }else if(reportFilter==='year'){
+    const y=document.getElementById('rf-year-only').value;
+    return {recs:byYear(y), label:'Ano '+y};
+  }else if(reportFilter==='range'){
+    const from=document.getElementById('rf-from').value;
+    const to=document.getElementById('rf-to').value;
+    if(!from||!to)return {recs:[],label:'Periodo'};
+    return {recs:byRange(from,to), label:fmtDate(from)+' a '+fmtDate(to)};
+  }else if(reportFilter==='day'){
+    const d=document.getElementById('rf-day').value;
+    if(!d)return {recs:[],label:'Dia'};
+    return {recs:byDay(d), label:fmtDate(d)};
+  }
+  return {recs:[],label:''};
+}
+
+function buildFilterInputs(){
+  const el=document.getElementById('filter-inputs');
+  const mOpts=MONTHS.map((m,i)=>'<option value="'+i+'"'+(i===curMonth?' selected':'')+'>'+m.charAt(0).toUpperCase()+m.slice(1)+'</option>').join('');
+  const years=new Set(records.map(r=>r.date.slice(0,4)));years.add(String(curYear));
+  const yOpts=[...years].sort().map(y=>'<option value="'+y+'"'+(y==curYear?' selected':'')+'>'+y+'</option>').join('');
+
+  if(reportFilter==='month'){
+    el.innerHTML='<div class="filter-field"><label>Mes</label><select id="rf-month">'+mOpts+'</select></div><div class="filter-field"><label>Ano</label><select id="rf-year">'+yOpts+'</select></div>';
+    el.querySelectorAll('select').forEach(s=>s.addEventListener('change',renderReportContent));
+  }else if(reportFilter==='year'){
+    el.innerHTML='<div class="filter-field"><label>Ano</label><select id="rf-year-only">'+yOpts+'</select></div>';
+    el.querySelector('select').addEventListener('change',renderReportContent);
+  }else if(reportFilter==='range'){
+    const today=curYear+'-'+String(curMonth+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0');
+    const first=curYear+'-'+String(curMonth+1).padStart(2,'0')+'-01';
+    el.innerHTML='<div class="filter-field"><label>De</label><input type="date" id="rf-from" value="'+first+'"></div><div class="filter-field"><label>Ate</label><input type="date" id="rf-to" value="'+today+'"></div>';
+    el.querySelectorAll('input').forEach(i=>i.addEventListener('change',renderReportContent));
+  }else if(reportFilter==='day'){
+    const today=curYear+'-'+String(curMonth+1).padStart(2,'0')+'-'+String(new Date().getDate()).padStart(2,'0');
+    el.innerHTML='<div class="filter-field"><label>Data</label><input type="date" id="rf-day" value="'+today+'"></div>';
+    el.querySelector('input').addEventListener('change',renderReportContent);
+  }
+}
+
+function renderReportContent(){
+  const {recs,label}=getReportRecords();
+  const s=sumRecs(recs);
+  const avg=s.count?(s.total/s.count).toFixed(1):'0';
+
+  document.getElementById('report-summary').innerHTML=
+    '<div class="stat-card"><div class="stat-label">Total Bovinos</div><div class="stat-value primary">'+s.total+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Abates</div><div class="stat-value accent">'+s.count+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Machos</div><div class="stat-value male">'+s.machos+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Femeas</div><div class="stat-value female">'+s.femeas+'</div></div>';
+
+  const prev=document.getElementById('report-preview');
+  if(!recs.length){
+    prev.innerHTML='<div class="empty-state"><p>Nenhum registro neste periodo</p></div>';
+    document.getElementById('btn-pdf').disabled=true;
+    return;
+  }
+  document.getElementById('btn-pdf').disabled=false;
+
+  let rows='';
+  if(reportFilter==='year'){
+    for(let mi=0;mi<12;mi++){
+      const mr=recs.filter(function(r){var d=new Date(r.date+'T00:00:00');return d.getMonth()===mi});
+      if(!mr.length)continue;
+      var ms=sumRecs(mr);var mAvg=ms.count?(ms.total/ms.count).toFixed(1):'0';
+      rows+='<tr class="month-header"><td colspan="5">'+MONTHS[mi].charAt(0).toUpperCase()+MONTHS[mi].slice(1)+'</td></tr>';
+      mr.forEach(function(r){rows+='<tr><td>'+fmtDateShort(r.date)+'</td><td class="num">'+r.total+'</td><td class="num m">'+(r.machos!=null?r.machos:'-')+'</td><td class="num f">'+(r.femeas!=null?r.femeas:'-')+'</td><td>'+(r.obs?esc(r.obs):'')+'</td></tr>'});
+      rows+='<tr class="month-subtotal"><td>Subtotal ('+ms.count+' abates)</td><td class="num">'+ms.total+'</td><td class="num">'+ms.machos+'</td><td class="num">'+ms.femeas+'</td><td>Media: '+mAvg+'/abate</td></tr>';
+    }
+  }else{
+    rows=recs.map(r=>'<tr><td>'+fmtDateShort(r.date)+'</td><td class="num">'+r.total+'</td><td class="num m">'+(r.machos!=null?r.machos:'-')+'</td><td class="num f">'+(r.femeas!=null?r.femeas:'-')+'</td><td>'+(r.obs?esc(r.obs):'')+'</td></tr>').join('');
+  }
+  prev.innerHTML='<div class="report-table-wrap"><table class="report-table"><thead><tr><th>Data</th><th class="num">Total</th><th class="num">Machos</th><th class="num">Femeas</th><th>Obs</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>TOTAL '+(reportFilter==='year'?'ANUAL ':'')+'('+s.count+' abates)</td><td class="num">'+s.total+'</td><td class="num">'+s.machos+'</td><td class="num">'+s.femeas+'</td><td>Media: '+avg+'/abate</td></tr></tfoot></table></div>';
+}
+
+function renderReport(){
+  buildFilterInputs();
+  renderReportContent();
+}
+
+async function generatePDF(){
+  const {recs,label}=getReportRecords();
+  if(!recs.length){toast('Nenhum registro para gerar');return}
+  const s=sumRecs(recs);
+  const avg=s.count?(s.total/s.count).toFixed(1):'0';
+  const gerado=new Date().toLocaleString('pt-BR');
+
+  const btn=document.getElementById('btn-pdf');
+  btn.disabled=true;
+  btn.textContent='Gerando...';
+
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF();
+
+    doc.setFontSize(20);
+    doc.setTextColor(45,95,45);
+    doc.text('CONTROLE ABATEDOURO',105,20,{align:'center'});
+
+    doc.setFontSize(11);
+    doc.setTextColor(100,100,100);
+    doc.text('Relatório: '+label,105,28,{align:'center'});
+
+    doc.setDrawColor(45,95,45);
+    doc.setLineWidth(0.8);
+    doc.line(15,33,195,33);
+
+    var sy=38,bw=42;
+    var boxes=[
+      {l:'TOTAL BOVINOS',v:String(s.total),c:[45,95,45]},
+      {l:'ABATES',v:String(s.count),c:[184,134,11]},
+      {l:'MACHOS',v:String(s.machos),c:[58,124,165]},
+      {l:'FÊMEAS',v:String(s.femeas),c:[184,92,138]}
+    ];
+    boxes.forEach(function(b,i){
+      var x=15+i*(bw+3);
+      doc.setFillColor(240,245,240);
+      doc.roundedRect(x,sy,bw,22,3,3,'F');
+      doc.setFontSize(16);
+      doc.setTextColor(b.c[0],b.c[1],b.c[2]);
+      doc.text(b.v,x+bw/2,sy+12,{align:'center'});
+      doc.setFontSize(7);
+      doc.setTextColor(100,100,100);
+      doc.text(b.l,x+bw/2,sy+18,{align:'center'});
+    });
+
+    var tblHead=[['Data','Total','Machos','Fêmeas','Observações']];
+    var tblHeadStyles={fillColor:[45,95,45],fontSize:8.5,halign:'left'};
+    var tblFootStyles={fillColor:[232,240,232],textColor:[30,30,30],fontStyle:'bold',fontSize:8.5};
+    var tblStyles={fontSize:9,cellPadding:4,overflow:'linebreak'};
+    var tblColStyles={1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}};
+    var tblAlt={fillColor:[250,250,246]};
+    var tblMargin={left:15,right:15};
+
+    if(reportFilter==='year'){
+      var firstMonth=true;
+      for(var mi=0;mi<12;mi++){
+        var mr=recs.filter(function(r){var d=new Date(r.date+'T00:00:00');return d.getMonth()===mi});
+        if(!mr.length)continue;
+        var ms=sumRecs(mr);var mAvg=ms.count?(ms.total/ms.count).toFixed(1):'0';
+        var mName=MONTHS[mi].charAt(0).toUpperCase()+MONTHS[mi].slice(1);
+        var mData=mr.map(function(r){return[fmtDate(r.date),r.total,r.machos!=null?r.machos:'-',r.femeas!=null?r.femeas:'-',r.obs||'']});
+
+        if(!firstMonth)doc.addPage();
+        var mStartY=firstMonth?sy+28:15;
+        firstMonth=false;
+
+        doc.setFontSize(13);
+        doc.setTextColor(45,95,45);
+        doc.text(mName,105,mStartY,{align:'center'});
+        doc.setDrawColor(45,95,45);doc.setLineWidth(0.4);
+        doc.line(15,mStartY+3,195,mStartY+3);
+
+        doc.autoTable({
+          startY:mStartY+7,
+          head:tblHead,
+          body:mData,
+          foot:[['Subtotal ('+ms.count+' abates)',String(ms.total),String(ms.machos),String(ms.femeas),'Média: '+mAvg+'/abate']],
+          headStyles:tblHeadStyles,footStyles:tblFootStyles,
+          styles:tblStyles,columnStyles:tblColStyles,
+          alternateRowStyles:tblAlt,margin:tblMargin
+        });
+      }
+
+      var lastY=doc.lastAutoTable.finalY+10;
+      if(lastY>260){doc.addPage();lastY=20}
+      doc.setFillColor(45,95,45);
+      doc.roundedRect(15,lastY,180,18,3,3,'F');
+      doc.setFontSize(10);doc.setTextColor(255,255,255);
+      doc.text('TOTAL ANUAL ('+s.count+' abates)    Bovinos: '+s.total+'    Machos: '+s.machos+'    Fêmeas: '+s.femeas+'    Média: '+avg+'/abate',105,lastY+11,{align:'center'});
+    }else{
+      var tableData=recs.map(function(r){return[fmtDate(r.date),r.total,r.machos!=null?r.machos:'-',r.femeas!=null?r.femeas:'-',r.obs||'']});
+      doc.autoTable({
+        startY:sy+28,head:tblHead,body:tableData,
+        foot:[['TOTAL ('+s.count+' abates)',String(s.total),String(s.machos),String(s.femeas),'Média: '+avg+'/abate']],
+        headStyles:tblHeadStyles,footStyles:tblFootStyles,
+        styles:tblStyles,columnStyles:tblColStyles,
+        alternateRowStyles:tblAlt,margin:tblMargin
+      });
+    }
+
+    var pages=doc.internal.getNumberOfPages();
+    for(var p=1;p<=pages;p++){
+      doc.setPage(p);
+      var ph=doc.internal.pageSize.height;
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text('Gerado em '+gerado,105,ph-10,{align:'center'});
+      if(pages>1)doc.text('Página '+p+' de '+pages,195,ph-10,{align:'right'});
+    }
+
+    var pdfBlob=doc.output('blob');
+    var safeName=label.replace(/[\/\\:*?"<>|\s]+/g,'-');
+
+    var fname='Relatorio-Abatedouro-'+safeName+'.pdf';
+    if(dlApi){
+      try{
+        await dlApi.save({filename:fname,data:pdfBlob});
+        toast('Relatório salvo!');
+      }catch(e){
+        if(e&&e.code==='declined'){toast('Download cancelado')}
+        else if(e&&e.code==='rate_limited'){toast('Aguarde e tente novamente')}
+        else{downloadBlob(pdfBlob,fname);toast('Relatório salvo!')}
+      }
+    }else{
+      downloadBlob(pdfBlob,fname);
+      toast('Relatório salvo!');
+    }
+  }catch(err){
+    toast('Erro: '+(err&&err.message?err.message:'falha ao gerar PDF'));
+    console.error('PDF error:',err);
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Baixar PDF';
+  }
+}
+
+// ===== STATS =====
+function renderStats(){
+  const months=allMonths();const c=colors();
+  if(monthlyChart){
+    monthlyChart.data.labels=months.map(m=>MABBR[m.m]+'/'+String(m.y).slice(2));
+    monthlyChart.data.datasets[0].data=months.map(m=>m.total);
+    monthlyChart.data.datasets[0].backgroundColor=c.primary;
+    monthlyChart.options.scales.x.ticks.color=c.muted;monthlyChart.options.scales.y.ticks.color=c.muted;monthlyChart.options.scales.y.grid.color=c.border;
+    monthlyChart.update('none');
+  }
+  const totalAll=records.reduce((s,r)=>s+r.total,0);
+  const totalM=records.reduce((s,r)=>s+(r.machos||0),0);
+  const totalF=records.reduce((s,r)=>s+(r.femeas||0),0);
+  const avgE=records.length?(totalAll/records.length).toFixed(1):'0';
+  const el=document.getElementById('summary-grid');
+  el.innerHTML=
+    '<div class="stat-card"><div class="stat-label">Total geral</div><div class="stat-value primary">'+totalAll+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Total abates</div><div class="stat-value accent">'+records.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Media/abate</div><div class="stat-value">'+avgE+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Total machos</div><div class="stat-value male">'+totalM+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Total femeas</div><div class="stat-value female">'+totalF+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Meses ativos</div><div class="stat-value">'+months.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Maior mes</div><div class="stat-value">'+(months.length?Math.max(...months.map(m=>m.total)):0)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Menor mes</div><div class="stat-value">'+(months.length?Math.min(...months.map(m=>m.total)):0)+'</div></div>';
+}
+
+// ===== MODAL =====
+function openModal(rec){
+  editId=rec?rec.id:null;
+  document.getElementById('modal-title').textContent=rec?'Editar Registro':'Novo Registro';
+  const fd=document.getElementById('f-date'),ft=document.getElementById('f-total'),fm=document.getElementById('f-machos'),ff=document.getElementById('f-femeas'),fo=document.getElementById('f-obs');
+  if(rec){fd.value=rec.date;ft.value=rec.total;fm.value=rec.machos!=null?rec.machos:'';ff.value=rec.femeas!=null?rec.femeas:'';fo.value=rec.obs||''}
+  else{const now=new Date();fd.value=(now.getFullYear()===curYear&&now.getMonth()===curMonth)?now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0'):curYear+'-'+String(curMonth+1).padStart(2,'0')+'-01';ft.value='';fm.value='';ff.value='';fo.value=''}
+  document.getElementById('form-warn').hidden=true;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>ft.focus(),250);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');editId=null}
+
+function saveRecord(){
+  const date=document.getElementById('f-date').value,total=parseInt(document.getElementById('f-total').value);
+  const mVal=document.getElementById('f-machos').value,fVal=document.getElementById('f-femeas').value;
+  const machos=mVal!==''?parseInt(mVal):null,femeas=fVal!==''?parseInt(fVal):null;
+  const obs=document.getElementById('f-obs').value.trim();
+  if(!date||isNaN(total)||total<1)return;
+  if(machos!=null&&femeas!=null&&machos+femeas!==total){const w=document.getElementById('form-warn');w.textContent='Machos ('+machos+') + Femeas ('+femeas+') = '+(machos+femeas)+', diferente do total ('+total+')';w.hidden=false}
+  if(editId){const r=records.find(x=>x.id===editId);if(r){r.date=date;r.total=total;r.machos=machos;r.femeas=femeas;r.obs=obs}toast('Registro atualizado')}
+  else{records.push({id:uid(),date,total,machos,femeas,obs});toast('Registro adicionado')}
+  save();
+  const d=new Date(date+'T00:00:00');
+  if(d.getFullYear()!==curYear||d.getMonth()!==curMonth)setMonth(d.getFullYear(),d.getMonth());else render();
+  closeModal();
+}
+
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500)}
+
+function initCharts(){
+  const c=colors();
+  const opts=()=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:c.text,titleColor:c.bg,bodyColor:c.bg,cornerRadius:6,padding:8}},scales:{x:{grid:{display:false},ticks:{color:c.muted,font:{size:11}}},y:{beginAtZero:true,grid:{color:c.border,drawBorder:false},ticks:{color:c.muted,font:{size:11}}}},animation:{duration:300}});
+  dailyChart=new Chart(document.getElementById('chart-daily'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c.primary,borderRadius:4,maxBarThickness:28}]},options:opts()});
+  monthlyChart=new Chart(document.getElementById('chart-monthly'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:c.primary,borderRadius:4,maxBarThickness:36}]},options:opts()});
+}
+
+function handleExport(){
+  const panel=document.getElementById('data-panel');
+  const json=JSON.stringify(records,null,2);
+  panel.innerHTML='<textarea class="data-area" id="export-area" readonly>'+esc(json)+'</textarea><div style="margin-top:8px"><button class="tool-btn" id="btn-copy">Copiar</button></div>';
+  document.getElementById('btn-copy').addEventListener('click',()=>{try{navigator.clipboard.writeText(document.getElementById('export-area').value).then(()=>toast('Dados copiados')).catch(()=>{document.getElementById('export-area').select();toast('Selecione e copie')})}catch{document.getElementById('export-area').select();toast('Selecione e copie')}});
+}
+function handleImport(){
+  const panel=document.getElementById('data-panel');
+  panel.innerHTML='<textarea class="data-area" id="import-area" placeholder="Cole os dados JSON aqui..."></textarea><div style="margin-top:8px"><button class="tool-btn" id="btn-do-import">Importar</button></div>';
+  document.getElementById('btn-do-import').addEventListener('click',()=>{try{const p=JSON.parse(document.getElementById('import-area').value.trim());if(!Array.isArray(p))throw 0;records=p.map(r=>({id:r.id||uid(),date:r.date,total:Number(r.total),machos:r.machos!=null?Number(r.machos):null,femeas:r.femeas!=null?Number(r.femeas):null,obs:r.obs||''}));save();render();toast(records.length+' registros importados');panel.innerHTML=''}catch{toast('JSON invalido')}});
+}
+function handleReset(){
+  const panel=document.getElementById('data-panel');
+  panel.innerHTML='<div style="margin-top:12px;padding:12px;background:var(--danger-soft);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span style="font-size:0.85rem;color:var(--danger)">Substituir todos os dados pelos originais?</span><button class="tool-btn danger" id="btn-cr">Confirmar</button><button class="tool-btn" id="btn-xr">Cancelar</button></div>';
+  document.getElementById('btn-cr').addEventListener('click',()=>{seedData();render();toast('Dados restaurados');panel.innerHTML=''});
+  document.getElementById('btn-xr').addEventListener('click',()=>panel.innerHTML='');
+}
+
+function watchTheme(){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>render());
+  new MutationObserver(()=>render()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+}
+
+// Init
+load();
+const now=new Date();curYear=now.getFullYear();curMonth=now.getMonth();
+initCharts();setMonth(curYear,curMonth);watchTheme();
+initCloud();
+
+document.getElementById('prev-month').addEventListener('click',prevMonth);
+document.getElementById('next-month').addEventListener('click',nextMonth);
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+document.getElementById('fab').addEventListener('click',()=>openModal(null));
+document.getElementById('modal-backdrop').addEventListener('click',closeModal);
+document.getElementById('btn-cancel').addEventListener('click',closeModal);
+document.getElementById('form').addEventListener('submit',e=>{e.preventDefault();saveRecord()});
+document.getElementById('btn-export').addEventListener('click',handleExport);
+document.getElementById('btn-import').addEventListener('click',handleImport);
+document.getElementById('btn-reset').addEventListener('click',handleReset);
+document.getElementById('btn-pdf').addEventListener('click',generatePDF);
+
+document.getElementById('filter-tabs').addEventListener('click',e=>{
+  const btn=e.target.closest('.ft');if(!btn)return;
+  reportFilter=btn.dataset.ft;
+  document.querySelectorAll('.ft').forEach(b=>b.classList.toggle('active',b===btn));
+  renderReport();
+});
+
+document.getElementById('btn-cloud').addEventListener('click',openCloudModal);
+document.getElementById('cloud-backdrop').addEventListener('click',closeCloudModal);
+document.getElementById('btn-cloud-close').addEventListener('click',closeCloudModal);
+document.getElementById('btn-cloud-close2').addEventListener('click',closeCloudModal);
+document.getElementById('btn-cloud-connect').addEventListener('click',handleCloudConnect);
+document.getElementById('btn-cloud-disc').addEventListener('click',function(){disconnectFirebase();closeCloudModal()});
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('cloud-modal').classList.contains('open'))closeCloudModal();else if(document.getElementById('modal').classList.contains('open'))closeModal()}});
+let touchStartX=0;
+document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX},{passive:true});
+document.addEventListener('touchend',e=>{if(document.getElementById('modal').classList.contains('open'))return;const diff=e.changedTouches[0].clientX-touchStartX;if(Math.abs(diff)>80){diff>0?prevMonth():nextMonth()}},{passive:true});
+</script>
