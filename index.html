@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Controle Abatedouro</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap">
 <style>
@@ -220,6 +225,8 @@ input,textarea,select { font-family: inherit; }
 .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { transition-duration: 0.01ms !important; } }
 </style>
+</head>
+<body>
 
 <div id="app">
   <header id="header">
@@ -927,3 +934,5 @@ let touchStartX=0;
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX},{passive:true});
 document.addEventListener('touchend',e=>{if(document.getElementById('modal').classList.contains('open'))return;const diff=e.changedTouches[0].clientX-touchStartX;if(Math.abs(diff)>80){diff>0?prevMonth():nextMonth()}},{passive:true});
 </script>
+</body>
+</html>
